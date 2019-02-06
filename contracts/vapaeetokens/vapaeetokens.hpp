@@ -38,8 +38,8 @@ CONTRACT vapaeetokens : public eosio::contract {
 
         using contract::contract;
 
-        ACTION create( name   issuer, asset  maximum_supply);
-        ACTION issue( name to, asset quantity, string memo );
+        ACTION create( name issuer, asset  maximum_supply);
+        ACTION issue( name to, const asset& quantity, string memo );
         ACTION retire( asset quantity, string memo );
         ACTION transfer(name from, name to, asset quantity, string  memo );
         ACTION open( name owner, const symbol& symbol, name ram_payer );
@@ -47,7 +47,7 @@ CONTRACT vapaeetokens : public eosio::contract {
 
     private:
         // SNAPSHOT TABLES ------------------------------------------------------------------------------------------------------
-        // holds an amount of TLOS ofr each account.
+        // auxiliar structure to query the real snapshot table on other contract. Holds an amount of TLOS of each account.
         TABLE snapshot_table {
             name account;
             int64_t amount;
@@ -70,8 +70,9 @@ CONTRACT vapaeetokens : public eosio::contract {
         
     public:
        // AIRDROP-ACTOINS  ------------------------------------------------------------------------------------------------------
-       // cleos push action vapaeetokens setsnapshot '["vapaeetokens","1","CNT","0","0"]' -p vapaeetokens@active
+       // cleos push action vapaeetokens setsnapshot '["snapsnapsnap",1,"CNT",0,0]' -p vapaeetokens@active
        ACTION setsnapshot (name contract, uint64_t scope, const symbol_code& symbolcode, int64_t cap, int64_t min);
+       ACTION nosnapshot (const symbol_code& symbolcode);
        ACTION claim (name owner, const symbol_code & symbolcode);
 
     private:

@@ -10,28 +10,9 @@ using namespace std;
 namespace vapaee {
 
 CONTRACT vapaeetokens : public eosio::contract {
-    public:
-
-
-        // vapaeetokens(): cnt_token() {}
-
-        /*
-            -- VPE Accounts --
-            publishers: TABLE publisher <-- (prefix)
-
-            -- VPE Tokens --
-            accounts: TABLE account
-            stats: TABLE vpe_tokens
-
-            -- VPE Market --
-            buy_orders: token_order
-            sell_order: token_order
-
-        */
-
-       // TOKEN ------------------------------------------------------------------------------------------------------
-
     private:
+       // TOKEN-TABLES ------------------------------------------------------------------------------------------------------
+
         TABLE account {
             asset    balance;
 
@@ -53,39 +34,65 @@ CONTRACT vapaeetokens : public eosio::contract {
         void add_balance( name owner, asset value, name ram_payer );
 
     public:
+       // TOKEN-ACTOINS ------------------------------------------------------------------------------------------------------
+
         using contract::contract;
 
-        ACTION create( name   issuer,
-                    asset  maximum_supply);
-
+        ACTION create( name   issuer, asset  maximum_supply);
         ACTION issue( name to, asset quantity, string memo );
-
         ACTION retire( asset quantity, string memo );
-
-        ACTION transfer( name    from,
-                    name    to,
-                    asset   quantity,
-                    string  memo );
-
+        ACTION transfer(name from, name to, asset quantity, string  memo );
         ACTION open( name owner, const symbol& symbol, name ram_payer );
-
         ACTION close( name owner, const symbol& symbol );
 
-        static asset get_supply( name token_contract_account, symbol_code sym_code )
-        {
-            stats statstable( token_contract_account, sym_code.raw() );
-            const auto& st = statstable.get( sym_code.raw() );
-            return st.supply;
-        }
+    private:
+        // SNAPSHOT TABLES ------------------------------------------------------------------------------------------------------
+        // holds an amount of TLOS ofr each account.
+        TABLE snapshot_table {
+            name account;
+            int64_t amount;
+            uint64_t primary_key() const { return account.value; }
+        };
+        typedef eosio::multi_index< "snapshots"_n, snapshot_table > snapshots;
 
-        static asset get_balance( name token_contract_account, name owner, symbol_code sym_code )
-        {
-            accounts accountstable( token_contract_account, owner.value );
-            const auto& ac = accountstable.get( sym_code.raw() );
-            return ac.balance;
-        }
+        // this will have only 1 row setted by calling action setsnapshot
+        TABLE spanshot_source {
+            name contract;
+            uint64_t scope;
+            int64_t cap;
+            int64_t min;
+            uint64_t primary_key() const { return contract.value; }
+            uint64_t by_scope_key() const { return scope; }
+        };
+        typedef eosio::multi_index< "source"_n, spanshot_source,
+            indexed_by<"scope"_n, const_mem_fun<spanshot_source, uint64_t, &spanshot_source::by_scope_key>>
+        > source;
+        
+    public:
+       // AIRDROP-ACTOINS  ------------------------------------------------------------------------------------------------------
+       // cleos push action vapaeetokens setsnapshot '["vapaeetokens","1","CNT","0","0"]' -p vapaeetokens@active
+       ACTION setsnapshot (name contract, uint64_t scope, const symbol_code& symbolcode, int64_t cap, int64_t min);
+       ACTION claim (name owner, const symbol_code & symbolcode);
 
-       // TOKEN ------------------------------------------------------------------------------------------------------
+    private:
+       // MARKET-TABLES ------------------------------------------------------------------------------------------------------
+        TABLE reg_token_table {
+            symbol_code symbol;
+            name contract;
+            uint64_t primary_key() const { return symbol.raw(); }
+            uint64_t by_contract_key() const { return contract.value; }
+        };
+
+        typedef eosio::multi_index< "tokens"_n, reg_token_table,
+            indexed_by<"contract"_n, const_mem_fun<reg_token_table, uint64_t, &reg_token_table::by_contract_key>>
+        > tokens;
+
+
+
+    public:
+       // MARKET-ACTOINS  ------------------------------------------------------------------------------------------------------
+       ACTION addtoken (name contract, const symbol_code & symbol, name ram_payer);
+
 
 
 };

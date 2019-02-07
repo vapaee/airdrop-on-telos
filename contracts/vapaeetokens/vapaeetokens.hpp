@@ -37,7 +37,7 @@ CONTRACT vapaeetokens : public eosio::contract {
        // TOKEN-ACTOINS ------------------------------------------------------------------------------------------------------
 
         using contract::contract;
-
+        // cleos push action vapaeetokens create '["vapaeetokens","500000000.0000 CNT"]' -p vapaeetokens@active
         ACTION create( name issuer, asset  maximum_supply);
         ACTION issue( name to, const asset& quantity, string memo );
         ACTION retire( asset quantity, string memo );
@@ -67,13 +67,20 @@ CONTRACT vapaeetokens : public eosio::contract {
         typedef eosio::multi_index< "source"_n, spanshot_source,
             indexed_by<"scope"_n, const_mem_fun<spanshot_source, uint64_t, &spanshot_source::by_scope_key>>
         > source;
+
+        // Every user has this table with 1 entry for each token symbol_code claimed
+        TABLE claimed_table {
+            symbol_code sym_code;
+            uint64_t primary_key() const { return sym_code.raw(); }
+        };
+        typedef eosio::multi_index< "claimed"_n, claimed_table > claimed;        
         
     public:
        // AIRDROP-ACTOINS  ------------------------------------------------------------------------------------------------------
        // cleos push action vapaeetokens setsnapshot '["snapsnapsnap",1,"CNT",0,0]' -p vapaeetokens@active
        ACTION setsnapshot (name contract, uint64_t scope, const symbol_code& symbolcode, int64_t cap, int64_t min);
        ACTION nosnapshot (const symbol_code& symbolcode);
-       ACTION claim (name owner, const symbol_code & symbolcode);
+       ACTION claim (name owner, const symbol_code & symbolcode, name ram_payer);
 
     private:
        // MARKET-TABLES ------------------------------------------------------------------------------------------------------

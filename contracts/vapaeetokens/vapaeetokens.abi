@@ -1,5 +1,5 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Wed Jan 30 03:38:31 2019",
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Thu Feb  7 01:56:49 2019",
     "version": "eosio::abi/1.1",
     "structs": [
         {
@@ -9,6 +9,52 @@
                 {
                     "name": "balance",
                     "type": "asset"
+                }
+            ]
+        },
+        {
+            "name": "addtoken",
+            "base": "",
+            "fields": [
+                {
+                    "name": "contract",
+                    "type": "name"
+                },
+                {
+                    "name": "symbol",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "ram_payer",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "claim",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "symbolcode",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "ram_payer",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "claimed_table",
+            "base": "",
+            "fields": [
+                {
+                    "name": "sym_code",
+                    "type": "symbol_code"
                 }
             ]
         },
@@ -77,6 +123,16 @@
             ]
         },
         {
+            "name": "nosnapshot",
+            "base": "",
+            "fields": [
+                {
+                    "name": "symbolcode",
+                    "type": "symbol_code"
+                }
+            ]
+        },
+        {
             "name": "open",
             "base": "",
             "fields": [
@@ -95,6 +151,20 @@
             ]
         },
         {
+            "name": "reg_token_table",
+            "base": "",
+            "fields": [
+                {
+                    "name": "symbol",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "contract",
+                    "type": "name"
+                }
+            ]
+        },
+        {
             "name": "retire",
             "base": "",
             "fields": [
@@ -105,6 +175,68 @@
                 {
                     "name": "memo",
                     "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "setsnapshot",
+            "base": "",
+            "fields": [
+                {
+                    "name": "contract",
+                    "type": "name"
+                },
+                {
+                    "name": "scope",
+                    "type": "uint64"
+                },
+                {
+                    "name": "symbolcode",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "cap",
+                    "type": "int64"
+                },
+                {
+                    "name": "min",
+                    "type": "int64"
+                }
+            ]
+        },
+        {
+            "name": "snapshot_table",
+            "base": "",
+            "fields": [
+                {
+                    "name": "account",
+                    "type": "name"
+                },
+                {
+                    "name": "amount",
+                    "type": "int64"
+                }
+            ]
+        },
+        {
+            "name": "spanshot_source",
+            "base": "",
+            "fields": [
+                {
+                    "name": "contract",
+                    "type": "name"
+                },
+                {
+                    "name": "scope",
+                    "type": "uint64"
+                },
+                {
+                    "name": "cap",
+                    "type": "int64"
+                },
+                {
+                    "name": "min",
+                    "type": "int64"
                 }
             ]
         },
@@ -134,6 +266,16 @@
     "types": [],
     "actions": [
         {
+            "name": "addtoken",
+            "type": "addtoken",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "claim",
+            "type": "claim",
+            "ricardian_contract": ""
+        },
+        {
             "name": "close",
             "type": "close",
             "ricardian_contract": ""
@@ -149,6 +291,11 @@
             "ricardian_contract": ""
         },
         {
+            "name": "nosnapshot",
+            "type": "nosnapshot",
+            "ricardian_contract": ""
+        },
+        {
             "name": "open",
             "type": "open",
             "ricardian_contract": ""
@@ -156,6 +303,11 @@
         {
             "name": "retire",
             "type": "retire",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setsnapshot",
+            "type": "setsnapshot",
             "ricardian_contract": ""
         },
         {
@@ -173,8 +325,36 @@
             "key_types": []
         },
         {
+            "name": "claimed",
+            "type": "claimed_table",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "snapshots",
+            "type": "snapshot_table",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "source",
+            "type": "spanshot_source",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
             "name": "stat",
             "type": "currency_stats",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "tokens",
+            "type": "reg_token_table",
             "index_type": "i64",
             "key_names": [],
             "key_types": []

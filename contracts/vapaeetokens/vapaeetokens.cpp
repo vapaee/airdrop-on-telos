@@ -25,12 +25,13 @@ void vapaeetokens::create(name issuer, asset maximum_supply) {
 }
 
 
+// void vapaeetokens::issue( name to, const asset& quantity, string memo ) {
 void vapaeetokens::issue( name to, const asset& quantity, string memo ) {
-    // print("\nACTION vapaeetokens.issue()\n");
-    // print("to: ", to.to_string(), "\n");
-    // print("quantity: ", quantity.to_string(), "\n");
-    // print("memo: ", memo.c_str(), "\n");
-    /*
+    print("\nACTION vapaeetokens.issue()\n");
+    print("to: ", to.to_string(), "\n");
+    print("quantity: ", quantity.to_string(), "\n");
+    print("memo: ", memo.c_str(), "\n");
+    
     // check on symbol
     auto sym = quantity.symbol;
     eosio_assert( sym.is_valid(), "invalid symbol name" );
@@ -64,7 +65,6 @@ void vapaeetokens::issue( name to, const asset& quantity, string memo ) {
                             { st.issuer, to, quantity, memo }
         );
     }
-    */
     //print("vapaeetokens.issue() ...\n");
 }
 
@@ -111,10 +111,11 @@ void vapaeetokens::transfer(name from, name to, asset quantity, string memo) {
     eosio_assert( quantity.symbol == st.supply.symbol, "symbol precision mismatch" );
     eosio_assert( memo.size() <= 256, "memo has more than 256 bytes" );
 
-    auto payer = has_auth( to ) ? to : from;
+    auto ram_payer = has_auth( to ) ? to : from;
 
     sub_balance( from, quantity );
-    add_balance( to, quantity, payer );
+    add_balance( to, quantity, ram_payer );
+
 }
 
 void vapaeetokens::sub_balance( name owner, asset value ) {
@@ -155,11 +156,13 @@ void vapaeetokens::open( name owner, const symbol& symbol, name ram_payer ) {
     accounts acnts( _self, owner.value );
     auto it = acnts.find( sym_code_raw );
     if( it == acnts.end() ) {
-        /*
         acnts.emplace( ram_payer, [&]( auto& a ){
             a.balance = asset{0, symbol};
         });
-        */
+    } else {
+        acnts.modify( it, ram_payer, [&]( auto& a ) {
+            a.balance += a.balance;
+        });
     }
     print("vapaeetokens.open() ...\n");    
 }
@@ -180,11 +183,11 @@ void vapaeetokens::close( name owner, const symbol& symbol ) {
 // AIRDROP --------------------------------------------------------------------------------------------
 
 
-void vapaeetokens::setsnapshot(name contract, uint64_t scope, const symbol_code& symbolcode, int64_t cap, int64_t min) {
+void vapaeetokens::setsnapshot(name contract, uint64_t scope, const symbol_code& sym_code, int64_t cap, int64_t min) {
     print("\nACTION vapaeetokens.setsnapshot()\n");
 
     require_auth( _self );
-    source table( _self, symbolcode.raw() );
+    source table( _self, sym_code.raw() );
     auto it = table.begin();
     eosio_assert(it == table.end(), "source table is not empty");
 
@@ -196,32 +199,22 @@ void vapaeetokens::setsnapshot(name contract, uint64_t scope, const symbol_code&
     });
 }
 
-void vapaeetokens::nosnapshot(const symbol_code& symbolcode) {
+void vapaeetokens::nosnapshot(const symbol_code& sym_code) {
     print("\nACTION vapaeetokens.nosnapshot()\n");
 
     require_auth( _self );
-    source table( _self, symbolcode.raw() );
+    source table( _self, sym_code.raw() );
     auto it = table.begin();
     eosio_assert(it != table.end(), "source table is empty");
 
     table.erase(it);
 }
 
-void vapaeetokens::claim(name owner, const symbol_code& symbolcode) {
+void vapaeetokens::claim(name owner, const symbol_code& sym_code, name ram_payer) {
     print("\nACTION vapaeetokens.claim()\n");
 
-    asset quantity = asset{(int64_t)100000, symbol{symbolcode,4}};
-    
-    action(
-        permission_level{owner,"active"_n},
-        get_self(),
-        "issue"_n,
-        std::make_tuple(owner, quantity, "airdrop")
-    ).send();
-
-    /*
-    require_auth( owner );
-    eosio::symbol symbol{symbolcode,4};
+    require_auth( ram_payer );
+    eosio::symbol symbol{sym_code,4};
     auto sym_code_raw = symbol.code().raw();
  
     // check symbol exists
@@ -248,29 +241,32 @@ void vapaeetokens::claim(name owner, const symbol_code& symbolcode) {
     eosio_assert(amount >= min, (owner.to_string() + " account does NOT reach the minimun amount of " + std::to_string((float)min)).c_str());
     
     // check if already claimed
-    accounts acnts( _self, owner.value );
-    
-    auto it = acnts.find( sym_code_raw );
-    eosio_assert(it == acnts.end(), "You already claimed this token airdrop");
+    claimed claimedtable( _self, owner.value );
+    auto it = claimedtable.find( sym_code_raw );
+    eosio_assert(it == claimedtable.end(), "You already claimed this token airdrop");
+
+    // set calimed 
+    claimedtable.emplace(ram_payer, [&]( auto& a ){
+        a.sym_code = sym_code;
+    });
 
     // perform the airdrop
     asset quantity = asset{(int64_t)amount, symbol};
 
     action(
-        permission_level{owner,"active"_n},
+        permission_level{ram_payer,"active"_n},
         get_self(),
         "open"_n,
-        std::make_tuple(owner, symbol, owner)
+        std::make_tuple(owner, symbol, ram_payer)
     ).send();
    
     action(
-        //permission_level{st.issuer,"active"_n},
-        permission_level{owner,"active"_n},
+        permission_level{st.issuer,"active"_n},
         get_self(),
         "issue"_n,
-        std::make_tuple(owner, quantity, "airdrop")
+        std::make_tuple(owner, quantity, string("airdrop"))
     ).send();
-    */    
+    
     print("vapaeetokens.claim() ...\n");
 }
 

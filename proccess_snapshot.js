@@ -4,26 +4,40 @@ let csv = require('fast-csv');
 // variables -----------------------
 var total = 0;
 var accounts = 0;
+var capped = 0;
 var average = 0;
 var max = 0;
+var min = 0;
+var cap = 0;
 
+// max = 0;
+min = 1;
+cap = 40000;
 // proccessing ---------------------
 var stream = fs.createReadStream("6MSnapshotWithBalances.csv");
 csv.fromStream(stream, {headers : true})
-    .on("data", function(data){
+    .on("data", function(data) {
         data.balance = parseFloat(data.balance);
+        if (cap > 0) if (data.balance > cap) {
+            data.balance = cap;
+            capped++;
+        }
+        if (data.balance < min) return;
+        // if (0 < max) if (data.balance > max) return;
+
         total += data.balance;
         accounts++;
-        if (max < data.balance) max = data.balance;
-        console.log(data);
     })
     .on("end", function() {
         average = total / accounts;
         console.log("-----------------------");
+        console.log("cap:      ", cap);
+        console.log("min:      ", min);
+        console.log("-----------------------");
         console.log("total:    ", total);
         console.log("average:  ", average);
         console.log("accounts: ", accounts);
-        console.log("max:      ", max);
+        console.log("capped:   ", capped);
     });
 
 

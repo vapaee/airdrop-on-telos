@@ -1,5 +1,5 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Thu Feb  7 01:56:49 2019",
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Thu Feb  7 22:49:54 2019",
     "version": "eosio::abi/1.1",
     "structs": [
         {
@@ -241,6 +241,24 @@
             ]
         },
         {
+            "name": "stake",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                },
+                {
+                    "name": "to",
+                    "type": "name"
+                }
+            ]
+        },
+        {
             "name": "transfer",
             "base": "",
             "fields": [
@@ -259,6 +277,110 @@
                 {
                     "name": "memo",
                     "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "unstake",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                },
+                {
+                    "name": "from",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "unstake_time_table",
+            "base": "",
+            "fields": [
+                {
+                    "name": "sym_code",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "min_time",
+                    "type": "uint64"
+                },
+                {
+                    "name": "max_time",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "unstakeback",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "unstaketime",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "sym_code",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "min_time",
+                    "type": "uint64"
+                },
+                {
+                    "name": "max_time",
+                    "type": "uint64"
+                },
+                {
+                    "name": "auto_stake",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "user_stakes_table",
+            "base": "",
+            "fields": [
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                },
+                {
+                    "name": "to",
+                    "type": "name"
+                },
+                {
+                    "name": "since",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "user_unstakes_table",
+            "base": "",
+            "fields": [
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                },
+                {
+                    "name": "block",
+                    "type": "uint64"
                 }
             ]
         }
@@ -311,8 +433,28 @@
             "ricardian_contract": ""
         },
         {
+            "name": "stake",
+            "type": "stake",
+            "ricardian_contract": ""
+        },
+        {
             "name": "transfer",
             "type": "transfer",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "unstake",
+            "type": "unstake",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "unstakeback",
+            "type": "unstakeback",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "unstaketime",
+            "type": "unstaketime",
             "ricardian_contract": ""
         }
     ],
@@ -332,6 +474,13 @@
             "key_types": []
         },
         {
+            "name": "config",
+            "type": "unstake_time_table",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
             "name": "snapshots",
             "type": "snapshot_table",
             "index_type": "i64",
@@ -346,6 +495,13 @@
             "key_types": []
         },
         {
+            "name": "stakes",
+            "type": "user_stakes_table",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
             "name": "stat",
             "type": "currency_stats",
             "index_type": "i64",
@@ -355,6 +511,13 @@
         {
             "name": "tokens",
             "type": "reg_token_table",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "unstakes",
+            "type": "user_unstakes_table",
             "index_type": "i64",
             "key_names": [],
             "key_types": []

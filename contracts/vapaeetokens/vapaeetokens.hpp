@@ -104,7 +104,7 @@ CONTRACT vapaeetokens : public eosio::contract {
 
 
     private:
-        // BACKING-TABLES ------------------------------------------------------------------------------------------------------
+        // BANKING-TABLES ------------------------------------------------------------------------------------------------------
         // scope: owner
         TABLE user_stakes_table {
             asset quantity;
@@ -124,9 +124,9 @@ CONTRACT vapaeetokens : public eosio::contract {
             uint64_t primary_key() const { return quantity.symbol.code().raw(); }
             uint64_t by_block_key() const { return block; }
         };
-        typedef eosio::multi_index< "unstakes"_n, user_stakes_table,
-            indexed_by<"to"_n, const_mem_fun<user_stakes_table, uint64_t, &user_stakes_table::by_to_key>>
-        > stakes;
+        typedef eosio::multi_index< "unstakes"_n, user_unstakes_table,
+            indexed_by<"block"_n, const_mem_fun<user_unstakes_table, uint64_t, &user_unstakes_table::by_block_key>>
+        > unstakes;
 
         // scope: owner
         TABLE unstake_time_table {
@@ -138,7 +138,7 @@ CONTRACT vapaeetokens : public eosio::contract {
         typedef eosio::multi_index< "config"_n, unstake_time_table > config;
 
     public:
-        // BACKING-ACTOINS  ------------------------------------------------------------------------------------------------------
+        // BANKING-ACTOINS  ------------------------------------------------------------------------------------------------------
         // se genera una transacción desde el owner al contrato pagándole la cantidad quantity
         ACTION stake (name owner, const asset & quantity, name to);
 

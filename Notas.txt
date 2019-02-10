@@ -1,2 +1,0 @@
-cleos push action snapsnapsnap add '["bob", 1000, 1]' -p bob@active
-cleos push action snapsnapsnap add '["alice", 1200, 1]' -p alice@active

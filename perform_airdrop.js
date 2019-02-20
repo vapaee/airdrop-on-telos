@@ -4,6 +4,7 @@ var exec = require('child_process').exec;
 let csv = require('fast-csv');
 
 // variables -----------------------
+var cleos = "cleos --url https://testnet.telos.caleos.io";
 var milliseconds = 0;
 var delay = 0;
 var key = "EOS8RoCAXxWYUW2v4xkG19F57BDVBzpt9NN2iDsD1ouQNyV2BkiNc";
@@ -42,7 +43,7 @@ function process_snapshot() {
     dir.on('exit', function (code) {
         // console.log("B-exit code: ", code);
         if (commands.length > 0) {
-            if (delay > 0) return;
+            // if (delay > 0) return;
             setTimeout(process_snapshot, delay);
             delay = milliseconds;                
         }
@@ -67,9 +68,8 @@ csv.fromStream(stream, {headers : true})
         account = data.account;
         balance = Math.floor(data.balance * 10000);
         // push to local net ----
-        command = "cleos push action vapaeetokens claim '[\""+account+"\",\"CNT\",\"vapaeetokens\"]' -p vapaeetokens@active";
+        command = cleos + " push action vapaeetokens claim '[\""+account+"\",\"CNT\",\"vapaeetokens\"]' -p vapaeetokens@active";
         commands.push(command);
-
     })
     .on("end", function() {
         average = total / accounts;

@@ -26,12 +26,11 @@ CONTRACT vapaeetokens : public eosio::contract {
         };
 
         TABLE currency_stats {
-            asset    supply;
-            asset    max_supply;
-            name     issuer;
-
+            eosio::asset           supply;
+            eosio::asset           max_supply;
+            name                   issuer;
             uint64_t primary_key()const { return supply.symbol.code().raw(); }
-        };
+        };        
 
         typedef eosio::multi_index< "accounts"_n, account > accounts;
         typedef eosio::multi_index< "stat"_n, currency_stats > stats;
@@ -69,6 +68,7 @@ CONTRACT vapaeetokens : public eosio::contract {
             int64_t min;
             int64_t ratio;
             int64_t base;
+            string memo;
             uint64_t primary_key() const { return contract.value; }
             uint64_t by_scope_key() const { return scope; }
         };
@@ -85,10 +85,10 @@ CONTRACT vapaeetokens : public eosio::contract {
         
     public:
         // AIRDROP-ACTOINS  ------------------------------------------------------------------------------------------------------
-        // cleos push action vapaeetokens setsnapshot '["snapsnapsnap",1,"CNT",0,0]' -p vapaeetokens@active
-        ACTION setsnapshot (name contract, uint64_t scope, const symbol_code& symbolcode, int64_t cap, int64_t min, int64_t ratio, int64_t base);
-        ACTION nosnapshot (const symbol_code& symbolcode);
+        ACTION setsnapshot (name contract, uint64_t scope, const symbol_code& sym_code, int64_t cap, int64_t min, int64_t ratio, int64_t base, const std::string & memo);
         ACTION claim (name owner, const symbol_code & symbolcode, name ram_payer);
-};
+
+
+}; // contract
 
 }; // namespace

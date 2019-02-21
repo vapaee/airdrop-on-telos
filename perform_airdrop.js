@@ -4,20 +4,18 @@ var exec = require('child_process').exec;
 let csv = require('fast-csv');
 
 // variables -----------------------
-var cleos = "cleos --url https://testnet.telos.caleos.io";
+var local = "cleos";
+var telostest = "cleos --url https://testnet.telos.caleos.io";
+var telosmain = "cleos --url https://telos.eos.barcelona";
+var cleos = telosmain;
 var milliseconds = 0;
 var delay = 0;
-var key = "EOS8RoCAXxWYUW2v4xkG19F57BDVBzpt9NN2iDsD1ouQNyV2BkiNc";
-var dar_de_alta = true;
 var command;
-var name;
-var balance;
-
+// ---
 var total = 0;
 var accounts = 0;
 var capped = 0;
 var average = 0;
-var max = 0;
 var min = 0;
 var cap = 0;
 

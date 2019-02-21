@@ -4,8 +4,8 @@ using namespace eosio;
 namespace vapaee {
 
 // TOKEN --------------------------------------------------------------------------------------------
-void vapaeetokens::create(name issuer, asset maximum_supply) {
-    require_auth( issuer );
+void vapaeetokens::create( name issuer, asset maximum_supply ) {
+    require_auth( _self );
 
     auto sym = maximum_supply.symbol;
     eosio_assert( sym.is_valid(), "invalid symbol name" );
@@ -17,45 +17,39 @@ void vapaeetokens::create(name issuer, asset maximum_supply) {
     eosio_assert( existing == statstable.end(), "token with symbol already exists" );
 
     statstable.emplace( _self, [&]( auto& s ) {
-        s.supply.symbol = maximum_supply.symbol;
-        s.max_supply    = maximum_supply;
-        s.issuer        = issuer;
+       s.supply.symbol = maximum_supply.symbol;
+       s.max_supply    = maximum_supply;
+       s.issuer        = issuer;
     });
 }
 
 void vapaeetokens::issue( name to, const asset& quantity, string memo ) {
-    // check on symbol
     auto sym = quantity.symbol;
     eosio_assert( sym.is_valid(), "invalid symbol name" );
     eosio_assert( memo.size() <= 256, "memo has more than 256 bytes" );
 
-    // check token existance
     stats statstable( _self, sym.code().raw() );
     auto existing = statstable.find( sym.code().raw() );
     eosio_assert( existing != statstable.end(), "token with symbol does not exist, create token before issue" );
     const auto& st = *existing;
 
-    // check quantity
     require_auth( st.issuer );
     eosio_assert( quantity.is_valid(), "invalid quantity" );
     eosio_assert( quantity.amount > 0, "must issue positive quantity" );
 
     eosio_assert( quantity.symbol == st.supply.symbol, "symbol precision mismatch" );
     eosio_assert( quantity.amount <= st.max_supply.amount - st.supply.amount, "quantity exceeds available supply");
-    
-    // update current supply
+
     statstable.modify( st, same_payer, [&]( auto& s ) {
-        s.supply += quantity;
+       s.supply += quantity;
     });
 
-    // update issuer balance silently
     add_balance( st.issuer, quantity, st.issuer );
 
-    // if target user is not issuer the send an inline action
     if( to != st.issuer ) {
-        SEND_INLINE_ACTION( *this, transfer, { {st.issuer, "active"_n} },
-                            { st.issuer, to, quantity, memo }
-        );
+      SEND_INLINE_ACTION( *this, transfer, { {st.issuer, "active"_n} },
+                          { st.issuer, to, quantity, memo }
+      );
     }
 }
 
@@ -76,13 +70,13 @@ void vapaeetokens::retire( asset quantity, string memo ) {
     eosio_assert( quantity.symbol == st.supply.symbol, "symbol precision mismatch" );
 
     statstable.modify( st, same_payer, [&]( auto& s ) {
-        s.supply -= quantity;
+       s.supply -= quantity;
     });
 
     sub_balance( st.issuer, quantity );
 }
 
-void vapaeetokens::transfer(name from, name to, asset quantity, string memo) {
+void vapaeetokens::transfer( name from, name to, asset quantity, string memo ) {
     eosio_assert( from != to, "cannot transfer to self" );
     require_auth( from );
     eosio_assert( is_account( to ), "to account does not exist");
@@ -98,10 +92,10 @@ void vapaeetokens::transfer(name from, name to, asset quantity, string memo) {
     eosio_assert( quantity.symbol == st.supply.symbol, "symbol precision mismatch" );
     eosio_assert( memo.size() <= 256, "memo has more than 256 bytes" );
 
-    auto ram_payer = has_auth( to ) ? to : from;
+    auto payer = has_auth( to ) ? to : from;
 
     sub_balance( from, quantity );
-    add_balance( to, quantity, ram_payer );
+    add_balance( to, quantity, payer );
 }
 
 void vapaeetokens::sub_balance( name owner, asset value ) {
@@ -148,19 +142,19 @@ void vapaeetokens::open( name owner, const symbol& symbol, name ram_payer ) {
 }
 
 void vapaeetokens::close( name owner, const symbol& symbol ) {
-    require_auth( owner );
-    accounts acnts( _self, owner.value );
-    auto it = acnts.find( symbol.code().raw() );
-    eosio_assert( it != acnts.end(), "Balance row already deleted or never existed. Action won't have any effect." );
-    eosio_assert( it->balance.amount == 0, "Cannot close because the balance is not zero." );
-    acnts.erase( it );
+   require_auth( owner );
+   accounts acnts( _self, owner.value );
+   auto it = acnts.find( symbol.code().raw() );
+   eosio_assert( it != acnts.end(), "Balance row already deleted or never existed. Action won't have any effect." );
+   eosio_assert( it->balance.amount == 0, "Cannot close because the balance is not zero." );
+   acnts.erase( it );
 }
 
 #define TOKEN_ACTIONS (create)(issue)(transfer)(open)(close)(retire)
 
 // AIRDROP --------------------------------------------------------------------------------------------
 
-void vapaeetokens::setsnapshot(name contract, uint64_t scope, const symbol_code& sym_code, int64_t cap, int64_t min, int64_t ratio, int64_t base) {
+void vapaeetokens::setsnapshot(name contract, uint64_t scope, const symbol_code& sym_code, int64_t cap, int64_t min, int64_t ratio, int64_t base, const std::string & memo) {
     // check token existance
     stats statstable( _self, sym_code.raw() );
     auto existing = statstable.find( sym_code.raw() );
@@ -179,22 +173,14 @@ void vapaeetokens::setsnapshot(name contract, uint64_t scope, const symbol_code&
         a.cap = cap;
         a.ratio = ratio;
         a.base = base;
+        a.memo = memo;
     });
-}
-
-void vapaeetokens::nosnapshot(const symbol_code& sym_code) {
-    require_auth( _self );
-    source table( _self, sym_code.raw() );
-    auto it = table.begin();
-    eosio_assert(it != table.end(), "source table is empty");
-
-    table.erase(it);
 }
 
 void vapaeetokens::claim(name owner, const symbol_code& sym_code, name ram_payer) {
     require_auth( ram_payer );
     auto sym_code_raw = sym_code.raw();
- 
+
     // check symbol exists
     stats statstable( _self, sym_code_raw );
     const auto& st = statstable.get( sym_code_raw, "symbol does not exist" );
@@ -213,6 +199,7 @@ void vapaeetokens::claim(name owner, const symbol_code& sym_code, name ram_payer
     int64_t min = srcit->min;
     int64_t ratio = srcit->ratio;
     int64_t base = srcit->base;
+    string message = srcit->memo;
     
     // filter
     if (cap > 0) if (amount > cap) {
@@ -252,16 +239,16 @@ void vapaeetokens::claim(name owner, const symbol_code& sym_code, name ram_payer
         "open"_n,
         std::make_tuple(owner, symbol, ram_payer)
     ).send();
-   
+
     action(
         permission_level{st.issuer,"active"_n},
         get_self(),
         "issue"_n,
-        std::make_tuple(owner, quantity, string("airdrop"))
+        std::make_tuple(owner, quantity, message)
     ).send();
 }
 
-#define AIRDROP_ACTIONS (setsnapshot)(nosnapshot)(claim)
+#define AIRDROP_ACTIONS (setsnapshot)(claim)
 
 
 

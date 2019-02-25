@@ -17,10 +17,12 @@ var accounts = 0;
 var capped = 0;
 var average = 0;
 var min = 0;
+var max = 999999999;
 var cap = 0;
 
 // -------------
-min = 1000;
+min = 100;
+max = 1000;
 // cap = 40000;
 
 var commands = [];
@@ -56,6 +58,7 @@ csv.fromStream(stream, {headers : true})
             capped++;
         }
         if (data.balance < min) return;
+        if (data.balance >= max) return;
         // if (accounts > 3) return;
         // if (0 < max) if (data.balance > max) return;
 
